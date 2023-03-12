@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Vechain Deployer</title>
+    <script src="https://unpkg.com/@vechain/connex@2"></script>
+</head>
+
+<style>
+    #_bytecode {
+        width: 500px;
+        height: 300px;
+        margin: 30px auto 50px auto;
+        display: block;
+        padding: 10px;
+    }
+
+    #deploy_contract {
+        width: 520px;
+        height: 50px;
+        margin: 20px auto 20px auto;
+        display: block;
+        padding: 10px;
+        font-size: 20px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+</style>
+
+
+<body>
+
+    <h2 style="text-align: center;margin-top: 50px; font-size: 30px;"> Vechain Contract Deployer </h2>
+    <textarea id="_bytecode" placeholder="0x (Dont Forget to put 0x before bytecode if isnt present) : 0x608065b.....110033"></textarea>
+    <button id="deploy_contract" onclick="deploy_contract()">Deploy</button>
+    <div> Transaction ID : <span id="res" style="font-weight: 600;"></span></div>
+</body>
+
+<script>
+    
+    // <!-- ! Connecting with wallet
+    const connex = new Connex({
+        node: 'https://vethor-node-test.vechaindev.com',
+        network: 'test'
+    })
+
+
+    async function deploy_contract() {
+
+        const bytecode = document.getElementById("_bytecode").value;
+
+        const resp = await connex.vendor
+            .sign('tx', [{ value: 0, data: bytecode, to: null }])
+            .comment('Deploy contract')
+            .request()
+
+        console.log('Result --> \n', resp) // Here you will get transaction hash 
+        document.getElementById("res").innerHTML = resp.txid
+    }
+
+</script>
+
+</html>

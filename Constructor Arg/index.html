@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arg deployer</title>
+
+    <!-- INSERTED CONNEX HERE -->
+    <script src="https://unpkg.com/@vechain/connex@2"></script>
+
+    <!-- ADDED WEB.js HERE -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/3.0.0-rc.5/web3.min.js"
+        integrity="sha512-jRzb6jM5wynT5UHyMW2+SD+yLsYPEU5uftImpzOcVTdu1J7VsynVmiuFTsitsoL5PJVQi+OtWbrpWq/I+kkF4Q=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <link rel="stylesheet" href="style.css" />
+
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav id="navbar" class="">
+        <div class="nav-wrapper">
+            <div class="logo">
+                <a href="https://dapp-world.com"><i class="fa fa-angellist"></i> <img src="https://dapp-world.com/images/logo-beta.png"
+                        style="margin-top: 10px;" width="150px"> </a>
+            </div>
+
+            <ul id="menu">
+                <li><a href="https://github.com/DApp-World/VeChain_Smartbooks">Github</a></li>
+                <li><a href="https://dapp-world.com/smartbooks">SmartBook</a></li>
+            </ul>
+        </div>
+    </nav>
+
+
+    <div style="margin-top:80px; text-align:center;">
+        <h1 style="color:#444444; font-family:sans-serif; font-weight:bold; font-size:36px;">Send Argument while
+            Deploying</h1>
+    </div>
+
+
+    <textarea id="_bytecode" placeholder="Insert Bytecode Here"></textarea>
+    <input id="arg_int" placeholder="arg1, arg2 ... ">
+    
+    <button id="deploy_contract" onclick="deploy_contract()">Deploy</button>
+    <div style="margin-left: 50px;"> Transaction ID : <span id="res" style="font-weight: 600;"></span></div>
+
+
+</body>
+
+
+
+<script>
+
+    // <!-- ! Connecting with wallet
+    const connex = new Connex({
+        node: 'https://vethor-node-test.vechaindev.com',
+        network: 'test'
+    })
+
+    //PUT ABI HERE
+    const contract_abi =
+        [
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_initialValue",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "val",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "inputs": [],
+                "name": "check_vals",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "myValue",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ]
+
+
+    function encode_ABI() {
+
+        const web3 = new Web3();
+
+        const constructor_abi = contract_abi.find(({ type }) => type === "constructor");
+
+        let inputTypes = constructor_abi.inputs.map(input => input.type);
+
+        let inputValues = document.getElementById('arg_int').value;
+        inputValues = inputValues.split(',');
+
+        const encoded_args = web3.eth.abi.encodeParameters(inputTypes, inputValues);
+
+        return encoded_args.slice(2)
+    }
+
+
+    async function deploy_contract() {
+
+        const encoded_args = encode_ABI()
+
+        const bytecode = document.getElementById("_bytecode").value;
+
+        arged_bytecode = '0x' + bytecode + encoded_args; // NOTE : REMOVE 0x if your bytecode already starts with '0x'
+
+        const resp = await connex.vendor
+            .sign('tx', [{ value: 0, data: arged_bytecode, to: null }])
+            .comment('Deploy contract')
+            .request()
+
+        document.getElementById("res").innerHTML = resp.txid
+    }
+
+</script>
+
+</html>
